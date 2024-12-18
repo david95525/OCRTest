@@ -1,0 +1,56 @@
+﻿#videoElement {
+    height: 400px;
+    width: 400px;
+}
+
+.add-scanning {
+    width: 400px;
+    height: 60px;
+    top: 30%;
+    position: absolute;
+    background: linear-gradient( rgba(255, 255, 255, 0), 80%, rgba(96, 165, 250, 0.8) );
+    z-index: 2;
+    animation: addmove 1s linear infinite;
+    -webkit-animation: addmove 3s linear infinite;
+}
+
+#result_show {
+    position: absolute;
+    z-index: 10;
+    top: 29%;
+    left: 0
+}
+
+@keyframes addmove {
+    0% {
+        transform: translateY(0%);
+    }
+
+    100% {
+        transform: translateY(400%);
+    }
+}
+
+@media(max-width:575px) {
+    #result_show {
+        top: 25%;
+    }
+    @keyframes move {
+        100% {
+            transform: translateY(600%);
+        }
+    }
+
+    .add-scanning {
+        width: 330px;
+        top: 26%;
+        left: 10%
+    }
+
+    @keyframes addmove {
+
+        100% {
+            transform: translateY(420%);
+        }
+    }
+}

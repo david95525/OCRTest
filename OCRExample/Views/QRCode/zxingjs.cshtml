@@ -1,0 +1,69 @@
+﻿<div>
+    <button id="startButton">Start</button>
+    <button id="resetButton">Reset</button>
+</div>
+
+
+<video id="video" width="500" height="500" style="border: 1px solid gray"></video>
+<div id="scan_items" class="hidden">
+    <div class="scan_box">
+        @* <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" fill="currentColor" class="bi bi-fullscreen" viewBox="0 0 16 16">
+        <path d="M1.5 1a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0v-4A1.5 1.5 0 0 1 1.5 0h4a.5.5 0 0 1 0 1zM10 .5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 16 1.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5M.5 10a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 0 14.5v-4a.5.5 0 0 1 .5-.5m15 0a.5.5 0 0 1 .5.5v4a1.5 1.5 0 0 1-1.5 1.5h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5" />
+        </svg> *@
+    </div>
+    <div class="scanning"></div>
+</div>
+
+<div id="sourceSelectPanel" style="display:none">
+    <label for="sourceSelect">Change video source:</label>
+    <select id="sourceSelect" style="max-width:400px">
+    </select>
+</div>
+<label for="add_device" class="form-label">Input Device ID</label>
+<input type="text" class="form-control" name="add_device" id="add_device" />
+
+<script src="~/zxing/library/umd/index.min.js"></script>
+<script src="~/js/zxingjs.js"></script>
+<style lang="less">
+    #video {
+        position: relative;
+        object-fit: fill;
+        top: 23%;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .scan_box {
+        box-shadow: rgba(0, 0, 0, 0.5)0 0 0 150px;
+        width: 200px;
+        height: 200px;
+        z-index: 1;
+        top: 23.5%;
+        left: 150px;
+        position: absolute;
+    }
+
+    .scanning {
+        width: 200px;
+        height: 50px;
+        top: 23%;
+        left: 10%;
+        position: absolute;
+        background: linear-gradient( rgba(255, 255, 255, 0), 80%, rgba(96, 165, 250, 0.8) );
+        z-index: 2;
+        animation: move 2s linear infinite;
+        -webkit-animation: move 2s linear infinite;
+    }
+
+    @@keyframes move {
+        0% {
+            transform: translateY(0px);
+        }
+
+        100% {
+            transform: translateY(150px);
+        }
+    }
+</style>

@@ -1,0 +1,44 @@
+﻿<video autoplay></video>
+<button id="startscan">開始掃描</button>
+<button id="stopscan">停止掃描</button>
+<canvas style="position:fixed;left:100%;"></canvas>
+<img id="img_ocrad"/>
+
+
+<script src='/js/ocrad.js' defer></script>
+<script src="~/js/webrtc.js" defer></script>
+<script>
+    var canvas = document.querySelector('canvas');
+    var video_ocr = document.querySelector('video');
+    //event
+    var startscan = document.getElementById("startscan");
+    var stopscan = document.getElementById("stopscan");
+    var scanid = 0;
+    startscan.addEventListener("click", function () {
+        console.log("start");
+        screenshot();
+        //scanid = setInterval(screenshot, 5000);
+    });
+    stopscan.addEventListener("click", function () {
+        clearInterval(scanid);
+        console.log("stop");
+        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    });
+    //canvas
+    function screenshot() {
+        canvas.width = 640;
+        canvas.height = 480;
+        // 渲染
+        canvas.getContext('2d').drawImage(video_ocr, 0, 0, canvas.width, canvas.height);
+        ocradjs();
+    }
+
+    //ocrad.js
+    function ocradjs() {
+        let canvas_ocrad = document.querySelector('canvas');
+        var result = OCRAD(canvas_ocrad);     
+        if (result) {
+            console.log(result);
+        }
+    }
+</script>
