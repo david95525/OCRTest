@@ -33,7 +33,7 @@
 
 @media(max-width:575px) {
     #result_show {
-        top: 25%;
+        top: 325px;
     }
     @keyframes move {
         100% {

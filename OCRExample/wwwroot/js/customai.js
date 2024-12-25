@@ -57,24 +57,19 @@ function Capture_ver1_2(videoElement) {
     let config = { headers: { 'requestverificationtoken': VerificationToken } };
     axios.post("/AiVision/Saveimage", data, config).then(function (response) { }).catch(err => { console.log(err); });
 }
-function CustomImageAnalyze(customimage) {   
+async function CustomImageAnalyze(customimage) {
     let VerificationToken = document.getElementsByName("__RequestVerificationToken")[0].value;
     let keyconfig = { headers: { 'requestverificationtoken': VerificationToken } }
     let prediction_key = "";
-    axios.get("/AiVision/getkey", keyconfig).then(({ status, data }) => {
-        if (status !== 200) return;
-        prediction_key = data.prediction_key;
-    }).catch(err => { console.log(err); });
+    let response = await axios.get("/AiVision/getkey", keyconfig);
+    if (response.status !== 200) return;
+    prediction_key = response.data.prediction_key;
     let config = {
         headers: {
             'Content-Type': 'application/octet-stream',
             'Prediction-Key': prediction_key
         }
     }
-    let toplist = [0, 0, 0];
-    let numGroups = [[], [], []];
-    let leftGroups = [[], [], []];
-    let predictions = [];
     axios.post(urlstring, customimage, config)
         .then(function (response) {
             if (response.status === 200) {
@@ -82,108 +77,115 @@ function CustomImageAnalyze(customimage) {
                 if (document.getElementById("result_show")) {
                     document.getElementById("result_show").remove();
                 }
-                predictions = response.data.predictions;
+                let ylist = [0, 0, 0];
+                let xGroups = [[], [], []];
+                let numGroups = [[], [], []];
+                let predictions = response.data.predictions;
                 let topcontent = "";
                 predictions.forEach((prediction) => {
                     //排除條件
-                    if (prediction.probability < 0.35 || isNaN(prediction.tagName)) return;
-                    for (let i = 0; i < toplist.length; i++) {
+                    if (prediction.probability < 0.33 || isNaN(prediction.tagName)) return;
+                    for (let i = 0; i < ylist.length; i++) {
                         //以第一個高度為基準
-                        if (toplist[i] === 0) {
-                            toplist[i] = Math.round(prediction.boundingBox.top * 100) / 100;
+                        if (ylist[i] === 0) {
+                            ylist[i] = Math.round(prediction.boundingBox.top * 100) / 100;
                             numGroups[i].push(parseInt(prediction.tagName));
-                            leftGroups[i][0] = prediction.boundingBox.left;
-                            topcontent = topcontent + " 1:" + prediction.boundingBox.top;
+                            xGroups[i][0] = prediction.boundingBox.left;
+                            topcontent = `${topcontent} (1)${prediction.tagName} y:${prediction.boundingBox.top} x:${prediction.boundingBox.left}`;
                             return;
                         }
                         //第一個高度區間內視為同一列數字
-                        if (toplist[i] + 0.034 > prediction.boundingBox.top && toplist[i] - 0.034 < prediction.boundingBox.top) {
-                            topcontent = topcontent + " " + prediction.boundingBox.top;
-                            numberHandling(prediction.boundingBox.left, parseInt(prediction.tagName), i, leftGroups, numGroups);
+                        if (Math.abs(prediction.boundingBox.top - ylist[i]) < 0.034) {
+                            topcontent = `${topcontent} ${prediction.tagName} y:${prediction.boundingBox.top} x:${prediction.boundingBox.left}`;
+                            numberHandling(prediction.boundingBox.left, parseInt(prediction.tagName), i, xGroups, numGroups);
                             return;
                         }
                     }
                 });
                 document.getElementById("topcontent").textContent = topcontent;
-                let content = "";
                 if (numGroups[0].length > 0) {
                     //先把num和top對應起來
-                    let combined = toplist.map((top, index) => ({ top, number: parseInt(numGroups[index].join(''), 10) }));
+                    let combined = ylist.map((top, index) => ({ top, number: parseInt(numGroups[index].join(''), 10) }));
                     //照高度小到大重排
                     combined.sort((a, b) => a.top - b.top);
-                    //分別給予sys dia pul
-                    var [sys, dia, pul] = combined.map(item => {
-                        if (isNaN(item.number)) return 0;
-                        else return item.number;
-                    });
-                    let results = [sys, dia, pul];
-                    document.getElementById("content").textContent = content + " " + sys + " " + dia + " " + pul
+                    //分別給予sys dia pul 
+                    let [sys, dia, pul] = combined.map(item => item.number);
                     let renders = [];
                     let index = 0;
-                    for (var i = 0; i < results.length; i++) {
-                        if (results[i] != 0) {
-                            renders.push({ value: results[i].toString(), x: 10, y: 25 + index * 40, x1: 0, x2: 0, y1: 0, y3: 0 })
+                    let values = [sys, dia, pul];
+                    let ranges = [
+                        [40, 180], // sys 範圍
+                        [20, 140], // dia 範圍
+                        [20, 100]  // pul 範圍
+                    ];
+                    for (let i = 0; i < values.length; i++) {
+                        let value = values[i];
+                        let [min, max] = ranges[i];
+                        if (value >= min && value <= max) {
+                            renders.push({ value: value.toString(), x: 10, y: 25 + index * 40, x1: 0, x2: 0, y1: 0, y3: 0 });
                             index++;
                         }
                     }
                     renderPredictions(renders);
+                    let content = "";
+                    document.getElementById("content").textContent = content + " " + sys + " " + dia + " " + pul;
                 }
             }
         }).catch(err => { console.log(err); });
 }
-function numberHandling(predictionLeft = 0, number = 0, order = 0, leftGroups = [], numGroups = []) {
+function numberHandling(predictionLeft = 0, number = 0, order = 0, xGroups = [], numGroups = []) {
     if (order < 0 || order > 2) return;
-    var left = leftGroups[order];
-    var num = numGroups[order];
+    var xlist = xGroups[order];
+    var numlist = numGroups[order];
     var max = predictionLeft;
-    if (left.length === 1) {
-        let point = Math.round(left[0] * 100) / 100;
+    if (xlist.length === 1) {
+        let point = Math.round(xlist[0] * 100) / 100;
         //是否和[0]數字重複
-        if (predictionLeft < point + 0.02 && predictionLeft > point - 0.02 && number === num[0])
+        if (Math.abs(predictionLeft - point) <= 0.05 && number === numlist[0])
             return;
         //新值比[0]大 插入array最前面
-        if (max < left[0]) {
-            left.push(left[0]);
-            num.push(num[0]);
-            left[0] = max;
-            num[0] = number;
+        if (max < xlist[0]) {
+            xlist.push(xlist[0]);
+            numlist.push(numlist[0]);
+            xlist[0] = max;
+            numlist[0] = number;
         }
         //新值比[0]小 array最後新增
-        if (max > left[0]) {
-            left.push(max);
-            num.push(number);
+        if (max > xlist[0]) {
+            xlist.push(max);
+            numlist.push(number);
         }
         return;
     }
-    if (left.length === 2) {
+    if (xlist.length === 2) {
         //是否和[0]數字重複
-        let point0 = Math.round(left[0] * 100) / 100;
-        if (predictionLeft < point0 + 0.03 && predictionLeft > point0 - 0.03 && number === num[0])
+        let point0 = Math.round(xlist[0] * 100) / 100;
+        if (Math.abs(predictionLeft - point0) < 0.05 && number === numlist[0])
             return;
         //是否和[1]數字重複
-        let point1 = Math.round(left[1] * 100) / 100;
-        if (predictionLeft < point1 + 0.03 && predictionLeft > point1 - 0.03 && number === num[1])
+        let point1 = Math.round(xlist[1] * 100) / 100;
+        if (Math.abs(predictionLeft - point1) < 0.05 && number === numlist[1])
             return;
         //新值比[0]大 插入array最前面
-        if (max < left[0]) {
-            left.push(left[1]);
-            num.push(num[1]);
-            left[1] = left[0];
-            num[1] = num[0];
-            left[0] = max;
-            num[0] = number;
+        if (max < xlist[0]) {
+            xlist.push(xlist[1]);
+            numlist.push(numlist[1]);
+            xlist[1] = xlist[0];
+            numlist[1] = numlist[0];
+            xlist[0] = max;
+            numlist[0] = number;
         }
         //新值比[0]小 比[1]大 插入[1]前面
-        else if (max < left[1]) {
-            left.push(left[1]);
-            num.push(num[1]);
-            left[1] = max;
-            num[1] = number;
+        else if (max < xlist[1]) {
+            xlist.push(xlist[1]);
+            numlist.push(numlist[1]);
+            xlist[1] = max;
+            numlist[1] = number;
         }
         //新值比[0][1]小 array最後新增
-        else if (max > left[1]) {
-            left.push(max);
-            num.push(number);
+        else if (max > xlist[1]) {
+            xlist.push(max);
+            numlist.push(number);
         }
     }
 }

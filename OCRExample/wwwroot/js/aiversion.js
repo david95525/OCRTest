@@ -130,20 +130,28 @@ const renderPredictions = function (predictions) {
         //        height
         //    );
         //}
-        let boxWidth = 44, boxHeight = 26;
-        let textOffsetX = value.length === 1 ? 10 : value.length === 2 ? 4 : 1;
+        let boxWidth = 44, boxHeight = 26, textOffsetX = 1, textwidth = 10, textheight = 10;
+        if (value.length === 1) textOffsetX = 10;
+        if (value.length === 2) textOffsetX = 4;
         // Draw background rectangle
-        ctx.fillStyle = "#00B5EC";
-        ctx.fillRect(x, y, boxWidth, boxHeight);
+        //ctx.fillStyle = "#00B5EC";
+        //ctx.fillRect(x, y, boxWidth, boxHeight);
         // Draw rectangle border
+        //ctx.strokeStyle = "white";
+        //ctx.lineWidth = 1;
+        //ctx.strokeRect(x, y, boxWidth, boxHeight);
+        // Draw the rounded rectangle
         ctx.strokeStyle = "white";
-        ctx.lineWidth = 1;
-        ctx.strokeRect(x, y, boxWidth, boxHeight);
+        ctx.fillStyle = "#00B5EC";
+        ctx.beginPath();
+        ctx.roundRect(x, y, boxWidth, boxHeight, 15);
+        ctx.stroke();
+        ctx.fill();
         // Draw the text
         ctx.font = "20px sans-serif";
         ctx.textBaseline = "top";
         ctx.fillStyle = "white";
-        ctx.fillText(value, x + textOffsetX, y + 1);
+        ctx.fillText(value, (x + textwidth / 2) + textOffsetX, (y + textheight / 2) + 1);
     });
     document.body.append(canvas);
 };
