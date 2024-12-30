@@ -3,6 +3,7 @@ var Rescan2Element = document.getElementById("Rescan2");
 const urlstring =
     "https://westeurope.api.cognitive.microsoft.com/customvision/v3.0/Prediction/e5a38042-8d44-412e-ace3-6bc4e3c51bee/detect/iterations/Iteration19/image";
 customscanElement.addEventListener("click", CustomstartCam);
+document.getElementById('tensorflow').addEventListener("click", tensorflowCam);
 function CustomstartCam() {
     scanElement.setAttribute("hidden", "");
     customscanElement.setAttribute("hidden", "");
@@ -43,9 +44,6 @@ function Capture_ver1_2(videoElement) {
     let ctx = canvas.getContext("2d");
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(videoElement, 0, 0, width, height);
-    let downloadLink = document.createElement('a');
-    let timestamp = Date.now();
-    downloadLink.setAttribute('download', `canvas_${timestamp}.png`);
     canvas.toBlob((blob) => {
         if (blob) {
             CustomImageAnalyze(blob);
@@ -77,61 +75,65 @@ async function CustomImageAnalyze(customimage) {
                 if (document.getElementById("result_show")) {
                     document.getElementById("result_show").remove();
                 }
-                let ylist = [0, 0, 0];
-                let xGroups = [[], [], []];
-                let numGroups = [[], [], []];
                 let predictions = response.data.predictions;
-                let topcontent = "";
-                predictions.forEach((prediction) => {
-                    //排除條件
-                    if (prediction.probability < 0.33 || isNaN(prediction.tagName)) return;
-                    for (let i = 0; i < ylist.length; i++) {
-                        //以第一個高度為基準
-                        if (ylist[i] === 0) {
-                            ylist[i] = Math.round(prediction.boundingBox.top * 100) / 100;
-                            numGroups[i].push(parseInt(prediction.tagName));
-                            xGroups[i][0] = prediction.boundingBox.left;
-                            topcontent = `${topcontent} (1)${prediction.tagName} y:${prediction.boundingBox.top} x:${prediction.boundingBox.left}`;
-                            return;
-                        }
-                        //第一個高度區間內視為同一列數字
-                        if (Math.abs(prediction.boundingBox.top - ylist[i]) < 0.034) {
-                            topcontent = `${topcontent} ${prediction.tagName} y:${prediction.boundingBox.top} x:${prediction.boundingBox.left}`;
-                            numberHandling(prediction.boundingBox.left, parseInt(prediction.tagName), i, xGroups, numGroups);
-                            return;
-                        }
-                    }
-                });
-                document.getElementById("topcontent").textContent = topcontent;
-                if (numGroups[0].length > 0) {
-                    //先把num和top對應起來
-                    let combined = ylist.map((top, index) => ({ top, number: parseInt(numGroups[index].join(''), 10) }));
-                    //照高度小到大重排
-                    combined.sort((a, b) => a.top - b.top);
-                    //分別給予sys dia pul 
-                    let [sys, dia, pul] = combined.map(item => item.number);
-                    let renders = [];
-                    let index = 0;
-                    let values = [sys, dia, pul];
-                    let ranges = [
-                        [40, 180], // sys 範圍
-                        [20, 140], // dia 範圍
-                        [20, 100]  // pul 範圍
-                    ];
-                    for (let i = 0; i < values.length; i++) {
-                        let value = values[i];
-                        let [min, max] = ranges[i];
-                        if (value >= min && value <= max) {
-                            renders.push({ value: value.toString(), x: 10, y: 25 + index * 40, x1: 0, x2: 0, y1: 0, y3: 0 });
-                            index++;
-                        }
-                    }
-                    renderPredictions(renders);
-                    let content = "";
-                    document.getElementById("content").textContent = content + " " + sys + " " + dia + " " + pul;
-                }
+                resultHandling(predictions);
             }
         }).catch(err => { console.log(err); });
+}
+function resultHandling(predictions) {
+    let ylist = [0, 0, 0];
+    let xGroups = [[], [], []];
+    let numGroups = [[], [], []];
+    let topcontent = "";
+    predictions.forEach((prediction) => {
+        //排除條件
+        if (prediction.probability < 0.33 || isNaN(prediction.tagName)) return;
+        for (let i = 0; i < ylist.length; i++) {
+            //以第一個高度為基準
+            if (ylist[i] === 0) {
+                ylist[i] = Math.round(prediction.boundingBox.top * 100) / 100;
+                numGroups[i].push(parseInt(prediction.tagName));
+                xGroups[i][0] = prediction.boundingBox.left;
+                topcontent = `${topcontent} (1)${prediction.tagName} y:${prediction.boundingBox.top} x:${prediction.boundingBox.left}`;
+                return;
+            }
+            //第一個高度區間內視為同一列數字
+            if (Math.abs(prediction.boundingBox.top - ylist[i]) < 0.034) {
+                topcontent = `${topcontent} ${prediction.tagName} y:${prediction.boundingBox.top} x:${prediction.boundingBox.left}`;
+                numberHandling(prediction.boundingBox.left, parseInt(prediction.tagName), i, xGroups, numGroups);
+                return;
+            }
+        }
+    });
+    document.getElementById("topcontent").textContent = topcontent;
+    if (numGroups[0].length > 0) {
+        //先把num和top對應起來
+        let combined = ylist.map((top, index) =>
+            ({ top, number: isNaN(numGroups[index].join('')) ? 0 : parseInt(numGroups[index].join(''), 10) }));
+        //照高度小到大重排
+        combined.sort((a, b) => a.top - b.top);
+        //分別給予sys dia pul 
+        let [sys, dia, pul] = combined.map(item => item.number);
+        let renders = [];
+        let index = 0;
+        let values = [sys, dia, pul];
+        let ranges = [
+            [40, 180], // sys 範圍
+            [20, 140], // dia 範圍
+            [20, 100]  // pul 範圍
+        ];
+        for (let i = 0; i < values.length; i++) {
+            let value = values[i];
+            let [min, max] = ranges[i];
+            if (value >= min && value <= max) {
+                renders.push({ value: value.toString(), x: 10, y: 25 + index * 40, x1: 0, x2: 0, y1: 0, y3: 0 });
+                index++;
+            }
+        }
+        renderPredictions(renders);
+        let content = "";
+        document.getElementById("content").textContent = content + " " + sys + " " + dia + " " + pul;
+    }
 }
 function numberHandling(predictionLeft = 0, number = 0, order = 0, xGroups = [], numGroups = []) {
     if (order < 0 || order > 2) return;
@@ -188,4 +190,69 @@ function numberHandling(predictionLeft = 0, number = 0, order = 0, xGroups = [],
             numlist.push(number);
         }
     }
+}
+function tensorflowCam() {
+    scanElement.setAttribute("hidden", "");
+    customscanElement.setAttribute("hidden", "");
+    videoElement.removeAttribute("hidden");
+    //scan
+    const constraints = { video: { facingMode: "environment" } };
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices
+            .getUserMedia(constraints)
+            .then(function (stream) {
+                videoElement.srcObject = stream;
+                tracks = stream.getTracks();
+                scanningElement.removeAttribute("hidden");
+                window.setTimeout(function () {
+                    tensorflow(videoElement);
+                }, 2000);
+            })
+            .catch(function (error) {
+                console.log("無法取得視訊串流：", error);
+                alert(
+                    "您使用的瀏覽器不支援視訊串流，請使用其他瀏覽器，再重新開啟頁面！"
+                );
+            });
+    } else {
+        alert("您使用的瀏覽器不支援視訊串流，請使用其他瀏覽器，再重新開啟頁面！");
+    }
+}
+async function tensorflow(videoElement) {
+    let canvas = document.createElement("canvas");
+    let [width, height] = videoDimensions(videoElement);
+    canvas.width = width;
+    canvas.height = height;
+    let ctx = canvas.getContext("2d");
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(videoElement, 0, 0, width, height);
+    let src = canvas.toDataURL("image/png");
+    let customimage = document.createElement("img");
+    customimage.src = src;
+    tensorflowAnalyze(customimage);
+    //let Customaibase64 = canvas.toDataURL("image/png", 1).replace('data:image/png;base64,', '');
+    //let data = { imagestring: Customaibase64 };
+    //let VerificationToken = document.getElementsByName("__RequestVerificationToken")[0].value;
+    //let config = { headers: { 'requestverificationtoken': VerificationToken } };
+    //axios.post("/AiVision/Saveimage", data, config).then(function (response) { }).catch(err => { console.log(err); });
+}
+async function tensorflowAnalyze(customimage) {
+    let model = new cvstfjs.ObjectDetectionModel();
+    await model.loadModelAsync('../aimodel/model.json');
+    let result = await model.executeAsync(customimage);
+    let detected_boxes, detected_scores, detected_classes;
+    [detected_boxes, detected_scores, detected_classes] = result;
+    let predictions = [];
+    console.log(result);
+    detected_boxes.map((box, i) => {
+        if (detected_classes[i] <= 10 && detected_scores[i] >= 0.33) {
+            let prdiction = {
+                tagName: (detected_classes[i] - 1).toString(),
+                probability: detected_scores[i],
+                boundingBox: { left: box[0], top: box[1] }
+            };
+            predictions.push(prdiction);
+        }
+    });
+    resultHandling(predictions);
 }
