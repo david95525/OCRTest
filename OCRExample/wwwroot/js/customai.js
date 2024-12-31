@@ -124,7 +124,7 @@ function resultHandling(predictions) {
         ];
         for (let i = 0; i < values.length; i++) {
             let value = values[i];
-            let [min, max] = ranges[i];
+            let [min, max] = ranges[index];
             if (value >= min && value <= max) {
                 renders.push({ value: value.toString(), x: 10, y: 25 + index * 40, x1: 0, x2: 0, y1: 0, y3: 0 });
                 index++;
@@ -245,9 +245,9 @@ async function tensorflowAnalyze(customimage) {
     let predictions = [];
     console.log(result);
     detected_boxes.map((box, i) => {
-        if (detected_classes[i] <= 10 && detected_scores[i] >= 0.33) {
+        if (detected_classes[i] <= 10) {
             let prdiction = {
-                tagName: (detected_classes[i] - 1).toString(),
+                tagName: (detected_classes[i]).toString(),
                 probability: detected_scores[i],
                 boundingBox: { left: box[0], top: box[1] }
             };
