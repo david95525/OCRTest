@@ -98,7 +98,7 @@ function resultHandling(predictions) {
                 return;
             }
             //第一個高度區間內視為同一列數字
-            if (Math.abs(prediction.boundingBox.top - ylist[i]) < 0.034) {
+            if (Math.abs(prediction.boundingBox.top - ylist[i]) < 0.04) {
                 topcontent = `${topcontent} ${prediction.tagName} y:${prediction.boundingBox.top} x:${prediction.boundingBox.left}`;
                 numberHandling(prediction.boundingBox.left, parseInt(prediction.tagName), i, xGroups, numGroups);
                 return;
@@ -230,11 +230,11 @@ async function tensorflow(videoElement) {
     let customimage = document.createElement("img");
     customimage.src = src;
     tensorflowAnalyze(customimage);
-    //let Customaibase64 = canvas.toDataURL("image/png", 1).replace('data:image/png;base64,', '');
-    //let data = { imagestring: Customaibase64 };
-    //let VerificationToken = document.getElementsByName("__RequestVerificationToken")[0].value;
-    //let config = { headers: { 'requestverificationtoken': VerificationToken } };
-    //axios.post("/AiVision/Saveimage", data, config).then(function (response) { }).catch(err => { console.log(err); });
+    let Customaibase64 = canvas.toDataURL("image/png", 1).replace('data:image/png;base64,', '');
+    let data = { imagestring: Customaibase64 };
+    let VerificationToken = document.getElementsByName("__RequestVerificationToken")[0].value;
+    let config = { headers: { 'requestverificationtoken': VerificationToken } };
+    axios.post("/AiVision/Saveimage", data, config).then(function (response) { }).catch(err => { console.log(err); });
 }
 async function tensorflowAnalyze(customimage) {
     let model = new cvstfjs.ObjectDetectionModel();
@@ -242,6 +242,9 @@ async function tensorflowAnalyze(customimage) {
     let result = await model.executeAsync(customimage);
     let detected_boxes, detected_scores, detected_classes;
     [detected_boxes, detected_scores, detected_classes] = result;
+    if (document.getElementById("result_show")) {
+        document.getElementById("result_show").remove();
+    }
     let predictions = [];
     console.log(result);
     detected_boxes.map((box, i) => {
