@@ -22,11 +22,11 @@
 
   <ItemGroup>
     <Folder Include="images\" />
-    <Folder Include="wwwroot\scan\2038\" />
+    <Folder Include="wwwroot\scan\" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="wwwroot\js\aiversion.js" />
+    <None Include="wwwroot\js\aivision\scanver1_1.js" />
   </ItemGroup>
 
 </Project>

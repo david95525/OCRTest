@@ -46,12 +46,12 @@ namespace OCRExample.Controllers
 
             Task.Run(() =>
             {
-                string file = Path.Combine(_env.WebRootPath, "scan", "2038", "1");
+                string file = Path.Combine(_env.WebRootPath, "scan", "1.1", DateTime.Now.ToString("yyyyMMdd"));
                 if (!Directory.Exists(file))
                 {
                     Directory.CreateDirectory(file);
                 }
-                string filename = $"test_{DateTime.Now.ToString("yyyyMMddhhmm")}.jpg";
+                string filename = $"{DateTime.Now.ToString("yyyyMMddhhmm")}_{model.width}x{model.height}.jpg";
                 string filePath = Path.Combine(file, filename);
                 MemoryStream ms = new MemoryStream(Convert.FromBase64String(model.imagestring));
                 FileStream stream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
@@ -91,12 +91,12 @@ namespace OCRExample.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Saveimage([FromBody] ImageModel model)
         {
-            string file = Path.Combine(_env.WebRootPath, "scan", "2038", "1");
+            string file = Path.Combine(_env.WebRootPath, "scan", model.version, DateTime.Now.ToString("yyyyMMdd"));
             if (!Directory.Exists(file))
             {
                 Directory.CreateDirectory(file);
             }
-            string filename = $"test_{DateTime.Now.ToString("yyyyMMddhhmm")}.jpg";
+            string filename = $"{DateTime.Now.ToString("yyyyMMddhhmm")}_{model.width}x{model.height}.jpg";
             string filePath = Path.Combine(file, filename);
             MemoryStream ms = new MemoryStream(Convert.FromBase64String(model.imagestring));
             FileStream stream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
@@ -114,6 +114,9 @@ namespace OCRExample.Controllers
         public class ImageModel
         {
             public string imagestring { get; set; } = string.Empty;
+            public int width { get; set; }
+            public int height { get; set; }
+            public string version { get; set; } = string.Empty;
         }
         public class PredictionModel
         {
