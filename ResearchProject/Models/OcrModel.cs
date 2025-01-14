@@ -1,4 +1,4 @@
-﻿namespace OCRExample.Models
+﻿namespace ResearchProject.Models
 {
     public class OcrModel
     {

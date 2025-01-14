@@ -1,11 +1,11 @@
 ﻿using Azure.AI.Vision.ImageAnalysis;
 using Azure;
 using Microsoft.AspNetCore.Mvc;
-using OCRExample.Models;
+using ResearchProject.Models;
 using System;
 using System.Runtime;
 
-namespace OCRExample.Controllers
+namespace ResearchProject.Controllers
 {
     public class AIvisionController : Controller
     {

@@ -1,32 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
-
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
-
   <ItemGroup>
     <Content Remove="wwwroot\js\aiversion.js" />
   </ItemGroup>
-
   <ItemGroup>
     <_ContentIncludedByDefault Remove="wwwroot\js\aiversion.js" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Azure.AI.Vision.ImageAnalysis" Version="1.0.0-beta.3" />
     <PackageReference Include="Microsoft.Azure.CognitiveServices.Vision.ComputerVision" Version="7.0.1" />
     <PackageReference Include="Tesseract" Version="5.2.0" />
   </ItemGroup>
-
   <ItemGroup>
     <Folder Include="images\" />
     <Folder Include="wwwroot\scan\" />
   </ItemGroup>
-
   <ItemGroup>
     <None Include="wwwroot\js\aivision\scanver1_1.js" />
   </ItemGroup>
-
 </Project>

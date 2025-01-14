@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using OCRExample.Models;
+using ResearchProject.Models;
 using System.Diagnostics;
 
-namespace OCRExample.Controllers
+namespace ResearchProject.Controllers
 {
     public class HomeController : Controller
     {

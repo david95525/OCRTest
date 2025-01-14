@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace OCRExample.Controllers
+namespace ResearchProject.Controllers
 {
     public class QRCodeController : Controller
     {
