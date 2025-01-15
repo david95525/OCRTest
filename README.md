@@ -1,1 +1,1 @@
-# OCRExample
+#ResearchProject
