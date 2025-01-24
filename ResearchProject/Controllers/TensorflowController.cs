@@ -8,5 +8,9 @@ namespace ResearchProject.Controllers
         {
             return View();
         }
+        public IActionResult Objectdetection()
+        {
+            return View();
+        }
     }
 }

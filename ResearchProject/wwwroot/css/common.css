@@ -73,3 +73,6 @@
         }
     }
 }
+#webcam {
+    visibility: hidden;
+}

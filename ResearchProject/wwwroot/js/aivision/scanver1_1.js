@@ -1,9 +1,8 @@
-﻿var Rescan11 = document.getElementById("Rescan11");
-scan11.addEventListener("click", startCam11);
+﻿scan11.addEventListener("click", startCam11);
 function startCam11() {
     // Hide elements and show video
     [scan11, scan12, scan20, tensorflow1, tensorflow2].forEach(el => el.setAttribute("hidden", ""));
-    [videoElement, Rescan11].forEach(el => el.removeAttribute("hidden"));
+    [videoElement, Rescan, backelement].forEach(el => el.removeAttribute("hidden"));
     let constraints = { video: { facingMode: "environment" } };
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         navigator.mediaDevices.getUserMedia(constraints)
@@ -11,8 +10,9 @@ function startCam11() {
                 videoElement.srcObject = stream;
                 tracks = stream.getTracks();
                 scanningElement.removeAttribute("hidden");
-                setTimeout(() => Capture11(videoElement), 2000);
-                Rescan11.addEventListener("click", () => Capture11(videoElement));
+                video = videoElement;
+                setTimeout(() => Capture11(), 1800);
+                Rescan.addEventListener("click", () => Capture11());
             })
             .catch(error => {
                 console.error("無法取得視訊串流：", error);
@@ -22,20 +22,15 @@ function startCam11() {
         alert("您使用的瀏覽器不支援視訊串流，請使用其他瀏覽器，再重新開啟頁面！");
     }
 }
-function Capture11(videoElement) {
-    let canvas = document.createElement("canvas");
-    [width, height] = videoDimensions(videoElement);
-    canvas.width = width;
-    canvas.height = height;
-    let ctx = canvas.getContext("2d");
-    ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(videoElement, 0, 0, width, height);
-    let base64 = canvas.toDataURL("image/png", 1);
-    var base64String = base64.replace('data:image/png;base64,', '');
-    let data = { imagestring: base64String, width: width, height: height };
-    ImageAnalyze11(data);
+function Capture11() {
+    let canvas = screenCap();
+    let base64String = canvas.toDataURL("image/png", 1).replace('data:image/png;base64,', '');
+    let data = { imagestring: base64String, width: canvas.width, height: canvas.height };
+    scanningElement.setAttribute("hidden", "");
+    aivisionExecute(data);
 }
-function ImageAnalyze11(data) {
+function aivisionExecute(data) {
+    loading.removeAttribute("hidden");
     let VerificationToken = document.getElementsByName("__RequestVerificationToken")[0].value;
     let config = { headers: { 'requestverificationtoken': VerificationToken } }
     let toplist = [], numGroups = [], sys_dia_pul_y1 = [0, 0, 0];
@@ -80,5 +75,5 @@ function ImageAnalyze11(data) {
 
             renderPredictions(renders);
         })
-        .catch(console.log);
+        .catch(function (err) { console.log(err); });
 }
