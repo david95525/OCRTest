@@ -25,6 +25,7 @@ function startCam12(isHigh) {
                     Capture2(version);
                 }, 1500);
                 Rescan2.addEventListener("click", function () {
+                    Rescan2.setAttribute("disabled", "");
                     while (process.firstChild) { process.removeChild(process.firstChild); }
                     Capture2(version);
                 });
@@ -40,6 +41,7 @@ function startCam12(isHigh) {
     }
 }
 function Capture2(version) {
+    start_time = performance.now();
     processLog("scanning...");
     let canvas = screenCap(video);
     scanning.setAttribute("hidden", "");
@@ -61,9 +63,13 @@ async function customaiExexute(customimage) {
     }
     processLog("Executing...");
     loading.removeAttribute("hidden");
+    let api_start = performance.now();
     axios.post(urlstring, customimage, config)
         .then(function (response) {
             if (response.status === 200) {
+                let api_end = performance.now();
+                let api_time = `api執行：${(api_end - api_start).toFixed(3)} 毫秒`;
+                processLog(api_time);
                 scanning.setAttribute("hidden", "");
                 if (document.getElementById("result_show")) {
                     document.getElementById("result_show").remove();
@@ -71,5 +77,6 @@ async function customaiExexute(customimage) {
                 let predictions = response.data.predictions;
                 dataProcessing(predictions);
             }
+            Rescan2.removeAttribute("disabled");
         }).catch(err => { console.log(err); });
 }

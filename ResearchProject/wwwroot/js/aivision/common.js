@@ -13,6 +13,8 @@ var tracks;
 var video = videoElement;
 var scanning = scanningElement;
 var width = 0, height = 0;
+var start_time;
+var end_time;
 //debug info
 var process = document.getElementById("process");
 var backelement = document.getElementById("back");
@@ -142,6 +144,9 @@ function dataProcessing(predictions, probability = 0.33) {
     } else {
         processLog("rendering fail");
     }
+    end_time = performance.now();
+    let model_time = `whole time：${(end_time - start_time).toFixed(3)} 毫秒`;
+    processLog(model_time);
     loading.setAttribute("hidden", "");
 }
 function renderPredictions(predictions) {
@@ -190,9 +195,9 @@ function videoDimensions(video) {
     return [width, height];
 }
 function processLog(text = "") {
-    let divelement = document.createElement("div");
-    divelement.textContent = text;
-    process.appendChild(divelement);
+    let span = document.createElement("span");
+    span.textContent = text;
+    process.appendChild(span);
 }
 function saveImage(canvas, version = "") {
     let Customaibase64 = canvas.toDataURL("image/png", 1).replace('data:image/png;base64,', '');

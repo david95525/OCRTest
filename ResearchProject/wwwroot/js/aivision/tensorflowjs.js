@@ -1,4 +1,8 @@
 ﻿var model = {};
+window.onload = async function () {
+    model = new cvstfjs.ObjectDetectionModel();
+    await model.loadModelAsync('../aimodel/model.json');
+}
 tensorflow1.addEventListener("click", function () { tensorflowCam(0); });
 tensorflow2.addEventListener("click", function () { tensorflowCam(1); });
 function tensorflowCam(isHigh) {
@@ -25,6 +29,7 @@ function tensorflowCam(isHigh) {
                     tensorflow();
                 }, 1500);
                 Rescan.addEventListener("click", function () {
+                    Rescan.setAttribute("disabled", "");
                     while (process.firstChild) {
                         process.removeChild(process.firstChild);
                     }
@@ -44,6 +49,7 @@ function tensorflowCam(isHigh) {
     }
 }
 function tensorflow() {
+    start_time = performance.now();
     let canvas = screenCap(video);
     let customimage = document.createElement("img");
     customimage.src = canvas.toDataURL("image/png");
@@ -57,9 +63,15 @@ async function modelExecute(customimage) {
     try {
         processLog("Model executing...");
         loading.removeAttribute("hidden");
-        model = new cvstfjs.ObjectDetectionModel();
-        await model.loadModelAsync('../aimodel/model.json');
+        let load_start = performance.now();
+        //await model.loadModelAsync('../aimodel/model.json');
+        let load_end = performance.now();
         let result = await model.executeAsync(customimage);
+        let model_end = performance.now();
+        let load_time = `model載入：${(load_end - load_start).toFixed(3)} 毫秒`;
+        let exe_time = `model執行：${(model_end - load_end).toFixed(3)} 毫秒`;
+        processLog(load_time);
+        processLog(exe_time);
         let detected_boxes, detected_scores, detected_classes;
         [detected_boxes, detected_scores, detected_classes] = result;
         if (document.getElementById("result_show")) {
@@ -77,6 +89,7 @@ async function modelExecute(customimage) {
             }
         });
         dataProcessing(predictions, 0.2);
+        Rescan.removeAttribute("disabled");
     } catch (err) {
         console.log(err);
     }
